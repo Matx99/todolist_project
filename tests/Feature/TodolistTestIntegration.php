@@ -40,7 +40,7 @@ class TodolistTestIntegration extends WebTestCase
         // GIVEN
 
         //WHEN
-        $this->client->request('POST', '/createuser',$this->user);
+        $this->client->request('POST', '/todolist', $this->user);
 
         // THEN
 
