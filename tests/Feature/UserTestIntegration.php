@@ -15,8 +15,7 @@ class UserTestIntegration extends WebTestCase
 {
     private $user;
     private $client;
-//    private static $url = "localhost";
-
+    private $em;
 
     protected function setUp(): void
     {
@@ -30,7 +29,16 @@ class UserTestIntegration extends WebTestCase
             "password" => "azertyuiop",
         ];
 
-//        $this->client = static::createClient();
+        $this->client = static::createClient();
+        $this->em = $this->client->getContainer()->get('doctrine.orm.entity_manager');
+    }
+
+    protected function tearDown(): void
+    {
+        parent::tearDown();
+
+        $this->em->close();
+        $this->em = null;
     }
 
 
@@ -38,7 +46,7 @@ class UserTestIntegration extends WebTestCase
     public function testAddUserOk()
     {
         // GIVEN
-       // on mock un user et un client
+        // on mock un user et un client
         $this->user = [
             "firstname" => "Taa",
             "lastname" => "Tto",
@@ -46,30 +54,35 @@ class UserTestIntegration extends WebTestCase
             "email" => "tr@yolo.fr",
             "password" => "azertyuiop",
         ];
-        
 
-        $this->client = static::createClient();
 
         //WHEN
-        $this->client->request('POST', '/createuser',$this->user);
+        $this->client->request('POST', '/createuser', $this->user);
 
         // THEN
-// Et donc en retour, ce qu'on doit obtenir de cet appel, c'est le code 201 qui permet de dire que le user a été créé
+        // Et donc en retour, ce qu'on doit obtenir de cet appel, c'est le code 201 qui permet de dire que le user a été créé
 
         $this->assertEquals(201, $this->client->getResponse()->getStatusCode());
     }
 
     public function testVisitingWhileLoggedIn()
     {
-        $client = static::createClient();
+        $user = new User();
+        $user->setFirstname("Titi");
+        $user->setLastname("Toto");
+        $user->setBirthday(15);
+        $user->setEmail("meme@yolo.fr");
+        $user->setPassword("azertyuiop");
+        $this->em->persist($user);
+        $this->em->flush();
 
         $userRepository = static::$container->get(UserRepository::class);
-        $testUser = $userRepository->findOneByEmail('blu@yolo.fr');
+        $testUser = $userRepository->findOneByEmail('meme@yolo.fr');
 
-        $client->loginUser($testUser);
+        $this->client->loginUser($testUser);
 
         // le user est connecté, on vérifie la présence des éléments de la page où il est redirigé
-        $client->request('GET', '/profile');
+        $this->client->request('GET', '/profile');
         $this->assertResponseIsSuccessful();
         $this->assertSelectorTextContains('h1', 'User logged successfully');
     }
@@ -86,10 +99,8 @@ class UserTestIntegration extends WebTestCase
             "password" => "azertyuiop",
         ];
 
-        $this->client = static::createClient();
-
         //WHEN
-        $this->client->request('POST', '/createuser',$this->user);
+        $this->client->request('POST', '/createuser', $this->user);
 
         // THEN
         $this->assertEquals(500, $this->client->getResponse()->getStatusCode());
@@ -107,10 +118,8 @@ class UserTestIntegration extends WebTestCase
             "password" => "azer",
         ];
 
-        $this->client = static::createClient();
-
         //WHEN
-        $this->client->request('POST', '/createuser',$this->user);
+        $this->client->request('POST', '/createuser', $this->user);
 
         // THEN
         $this->assertEquals(500, $this->client->getResponse()->getStatusCode());
@@ -128,10 +137,8 @@ class UserTestIntegration extends WebTestCase
             "password" => "azedddddegfyefgyegfyegfyegfyegfyegfyegfyegfyegyfgeygfyegfyegrtyuiop",
         ];
 
-        $this->client = static::createClient();
-
         //WHEN
-        $this->client->request('POST', '/createuser',$this->user);
+        $this->client->request('POST', '/createuser', $this->user);
 
         // THEN
         $this->assertEquals(500, $this->client->getResponse()->getStatusCode());
@@ -141,18 +148,26 @@ class UserTestIntegration extends WebTestCase
     {
         // GIVEN
         // on mock un user et un client
-        $this->user = [
+        $user = new User();
+        $user->setFirstname("Titi");
+        $user->setLastname("Toto");
+        $user->setBirthday(15);
+        $user->setEmail("meme@yolo.fr");
+        $user->setPassword("azertyuiop");
+        $this->em->persist($user);
+        $this->em->flush();
+
+        $user2 = [
             "firstname" => "Tata",
             "lastname" => "Toto",
             "birthday" => 15,
-            "email" => "ssszsz@yolo.fr",
+            "email" => "meme@yolo.fr",
             "password" => "azertyuiop",
         ];
 
-        $this->client = static::createClient();
 
         //WHEN
-        $this->client->request('POST', '/createuser',$this->user);
+        $this->client->request('POST', '/createuser', $user2);
 
         // THEN
         $this->assertEquals(500, $this->client->getResponse()->getStatusCode());
@@ -170,10 +185,8 @@ class UserTestIntegration extends WebTestCase
             "password" => "azertyuiop",
         ];
 
-        $this->client = static::createClient();
-
         //WHEN
-        $this->client->request('POST', '/createuser',$this->user);
+        $this->client->request('POST', '/createuser', $this->user);
 
         // THEN
         $this->assertEquals(500, $this->client->getResponse()->getStatusCode());
@@ -191,10 +204,8 @@ class UserTestIntegration extends WebTestCase
             "password" => "azertyuiop",
         ];
 
-        $this->client = static::createClient();
-
         //WHEN
-        $this->client->request('POST', '/createuser',$this->user);
+        $this->client->request('POST', '/createuser', $this->user);
 
         // THEN
         $this->assertEquals(500, $this->client->getResponse()->getStatusCode());
@@ -212,10 +223,8 @@ class UserTestIntegration extends WebTestCase
             "password" => "azertyuiop",
         ];
 
-        $this->client = static::createClient();
-
         //WHEN
-        $this->client->request('POST', '/createuser',$this->user);
+        $this->client->request('POST', '/createuser', $this->user);
 
         // THEN
         $this->assertEquals(500, $this->client->getResponse()->getStatusCode());
@@ -233,10 +242,9 @@ class UserTestIntegration extends WebTestCase
             "password" => "azertyuiop",
         ];
 
-        $this->client = static::createClient();
 
         //WHEN
-        $this->client->request('POST', '/createuser',$this->user);
+        $this->client->request('POST', '/createuser', $this->user);
 
         // THEN
         $this->assertEquals(500, $this->client->getResponse()->getStatusCode());
@@ -254,13 +262,10 @@ class UserTestIntegration extends WebTestCase
             "password" => "",
         ];
 
-        $this->client = static::createClient();
-
         //WHEN
-        $this->client->request('POST', '/createuser',$this->user);
+        $this->client->request('POST', '/createuser', $this->user);
 
         // THEN
         $this->assertEquals(500, $this->client->getResponse()->getStatusCode());
     }
-
 }
